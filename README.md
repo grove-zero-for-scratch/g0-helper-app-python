@@ -6,9 +6,11 @@
 
 2. Upload `grove_zero.sb2`
 
-3. Start Helper APP
+3. Connect g0 board to your PC, **double click the reset button on the board**, copy `scratch_g0.uf2` to the U disk `Grove Zero`.
+
+4. Start Helper APP
 ```
 python grove_zero_socket.py
 ```
 
-4. Connect g0 board to your PC, now your can use g0 with Scratch!
+5. now your can use g0 with Scratch!
