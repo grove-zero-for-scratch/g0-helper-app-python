@@ -133,24 +133,24 @@ def writeBuzzerPlayTone(path, gamut, beat):
 
 
 def addjobID(jobID):
-    device_state.setdefault(str(jobID), '_wait')
-    timer = threading.Timer(1, deljobID, [100,])
+    s = '_busy ' + str(jobID)
+    device_state.setdefault(s, '')
+    timer = threading.Timer(1, deljobID, [jobID,])
     timer.start()
 
 def deljobID(jobID):
-    device_state.pop(str(jobID))
-    timer = threading.Timer(1, addjobID, [100,])
+    s = '_busy ' + str(jobID)
+    device_state.pop(s)
+    timer = threading.Timer(1, addjobID, [jobID+1,])
     timer.start()
-
 
 def main():
     getValue(findGroveZeroNormal())
     print ("\n".join(["{} {}".format(i, device_state[i]) for i in device_state]))
     time.sleep(0.2)
-    
 
 if __name__ == '__main__':
-    timer = threading.Timer(1, addjobID, [100,])
+    timer = threading.Timer(1, addjobID, [1,])
     timer.start()
     while True:
         main() 

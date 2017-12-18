@@ -116,7 +116,8 @@ def display_text(jobId, text):
             s += '\xf7'
             ser.write(s)
             ser.close()
-            return "OK"
+        addjobID(jobId, count)
+        return "OK"
     else:
         return "ERROR"
 
@@ -129,8 +130,9 @@ def display_number(jobId, num):
             s += '{}'.format(num)
             s += '\xf7'
             ser.write(s)
-            ser.close()            
-            return "OK"
+            ser.close()
+        # addjobID(jobId, beat_delay_dict[melody])          
+        return "OK"
     else:
         return "ERROR"
 
@@ -152,7 +154,8 @@ def play_tone(jobId, gamut, scale, beat):
             s += '\xf7'
             ser.write(s)
             ser.close()
-            return "OK"
+        addjobID(jobId, beat_delay_dict[melody])
+        return "OK"
     else:
         return "ERROR"
 
@@ -170,9 +173,22 @@ def play_melody(jobId, melody):
             # print(s)
             ser.write(s)
             ser.close()
-            return "OK"
+        addjobID(jobId, melody_delay_dict[melody])
+        return "OK"
     else:
         return "ERROR"
+
+def addjobID(jobID, delay):
+    s = '_busy ' + str(jobID)
+    device_state.setdefault(s, '')
+    timer = threading.Timer(delay, deljobID, [jobID,])
+    timer.start()
+
+def deljobID(jobID):
+    s = '_busy ' + str(jobID)
+    device_state.pop(s)
+    # timer = threading.Timer(1, addjobID, [jobID+1,])
+    # timer.start()
 
 
 @app.route('/reset_all')
