@@ -2,6 +2,7 @@ from serial.tools.list_ports import *
 import serial
 import time
 import numpy as np
+import threading
 
 device_state = {"wasButtonPressed/A"    : "false", 
                 "wasButtonPressed/B"    : "false", 
@@ -91,11 +92,15 @@ def writeLedMatrixText(path, text):
         return "ERROR"
 
 # 0x03 melody = 0~7
-def writeBuzzerPlayMelody(path, melody = 0):
+
+melody_dict = {"BaDing":0, "Wawawawaa":1, "JumpUp":2, "JumpDown":3, "PowerUp":4, "PowerDown":5, "MagicWand":6, "Siren":7}
+melody_delay_dict = {"BaDing":0.5, "Wawawawaa":2.63, "JumpUp":0.63, "JumpDown":0.63, "PowerUp":1.13, "PowerDown":1.13, "MagicWand":1, "Siren":3}
+
+def writeBuzzerPlayMelody(path, melody):
     try:
         with serial.Serial(path, 115200, timeout=1) as ser:
             s = '\x81\xf0\x03'
-            s += chr(melody)
+            s += chr(melody_dict[melody])
             s += '\xf7'
             print(s)
             ser.write(s)
@@ -109,6 +114,7 @@ gamut_dict = {"C3":1, "C#3":22, "D3":2, "D#3":23, "E3":3, "F3":4, "F#3":24, "G3"
                "C5":15, "C#5":32, "D5":16, "D#5":33, "E5":17, "F5":18, "F#5":34, "G5":19, "G#5":35, "A5":20, "A#5":36, "B5":21}
 
 beat_dict = {"Whole":0, "Double":1, "Quadruple":2, "Octuple":3, "Half":4, "Quarter":5, "Eighth":6, "Sixteenth":7}
+beat_delay_dict = {"Whole":0.5, "Double":1, "Quadruple":2, "Octuple":4, "Half":0.25, "Quarter":0.13, "Eighth":0.07, "Sixteenth":0.04}
 
 # 0x01
 def writeBuzzerPlayTone(path, gamut, beat):
@@ -125,16 +131,27 @@ def writeBuzzerPlayTone(path, gamut, beat):
     except Exception as e:
         return "ERROR"   
 
+
+def addjobID(jobID):
+    device_state.setdefault(str(jobID), '_wait')
+    timer = threading.Timer(1, deljobID, [100,])
+    timer.start()
+
+def deljobID(jobID):
+    device_state.pop(str(jobID))
+    timer = threading.Timer(1, addjobID, [100,])
+    timer.start()
+
+
 def main():
     getValue(findGroveZeroNormal())
     print ("\n".join(["{} {}".format(i, device_state[i]) for i in device_state]))
-    # writeLedMatrixText(findGroveZeroNormal(), 'abcdefghijklmnopqrstuvwxyzabcd')
-    # writeBuzzerPlayMelody(findGroveZeroNormal(), 8)
-    # writeBuzzerPlayTone(findGroveZeroNormal(), "C5", "BEAT_1")
-    time.sleep(0.1)
+    time.sleep(0.2)
     
 
 if __name__ == '__main__':
+    timer = threading.Timer(1, addjobID, [100,])
+    timer.start()
     while True:
         main() 
     # main()

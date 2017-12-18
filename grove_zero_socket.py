@@ -1,32 +1,20 @@
 #! /usr/bin/python
 
-# Scratch Hue Helper app
-# ----------------------
-# (c) 2015 Chris Proctor
-# Distributed under the MIT license.
-# Project homepage: http://mrproctor.net/scratch
-
 from flask import Flask
-# import Queue
 from serial.tools.list_ports import *
 import serial
-# It's not generally good practice to disable warnings, but this is one of 
-# the first scripts students will run, so I am prioritizing a reduction of
-# any unnecessary output
 import warnings
 import logging
 import time
 import numpy as np
+import threading
 
 warnings.filterwarnings("ignore")
 
 app = Flask("g0_helper_app")
 app.logger.removeHandler(app.logger.handlers[0])
 
-# mission_queue = Queue.Queue()
 loggers = [app.logger, logging.getLogger('phue'), logging.getLogger('werkzeug')]
-# No logging. Switch out handlers for logging.
-# handler = logging.FileHandler('scratch_hue_extension.log')
 handler = logging.NullHandler()
 formatter = logging.Formatter('%(asctime)s - %(name)14s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
@@ -151,6 +139,7 @@ gamut_dict = {"C3":1, "C#3":22, "D3":2, "D#3":23, "E3":3, "F3":4, "F#3":24, "G3"
                "C5":15, "C#5":32, "D5":16, "D#5":33, "E5":17, "F5":18, "F#5":34, "G5":19, "G#5":35, "A5":20, "A#5":36, "B5":21}
 
 beat_dict = {"Whole":0, "Double":1, "Quadruple":2, "Octuple":3, "Half":4, "Quarter":5, "Eighth":6, "Sixteenth":7}
+beat_delay_dict = {"Whole":0.5, "Double":1, "Quadruple":2, "Octuple":4, "Half":0.25, "Quarter":0.13, "Eighth":0.07, "Sixteenth":0.04}
 
 @app.route('/playTone/<jobId>/<gamut>/<scale>/<beat>')
 def play_tone(jobId, gamut, scale, beat):
@@ -168,6 +157,7 @@ def play_tone(jobId, gamut, scale, beat):
         return "ERROR"
 
 melody_dict = {"BaDing":0, "Wawawawaa":1, "JumpUp":2, "JumpDown":3, "PowerUp":4, "PowerDown":5, "MagicWand":6, "Siren":7}
+melody_delay_dict = {"BaDing":0.5, "Wawawawaa":2.63, "JumpUp":0.63, "JumpDown":0.63, "PowerUp":1.13, "PowerDown":1.13, "MagicWand":1, "Siren":3}
 
 @app.route('/playMelody/<jobId>/<melody>')
 def play_melody(jobId, melody):
