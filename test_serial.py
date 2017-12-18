@@ -1,38 +1,7 @@
-#! /usr/bin/python
-
-# Scratch Hue Helper app
-# ----------------------
-# (c) 2015 Chris Proctor
-# Distributed under the MIT license.
-# Project homepage: http://mrproctor.net/scratch
-
-from flask import Flask
-# import Queue
 from serial.tools.list_ports import *
 import serial
-# It's not generally good practice to disable warnings, but this is one of 
-# the first scripts students will run, so I am prioritizing a reduction of
-# any unnecessary output
-import warnings
-import logging
 import time
 import numpy as np
-
-warnings.filterwarnings("ignore")
-
-app = Flask("g0_helper_app")
-app.logger.removeHandler(app.logger.handlers[0])
-
-# mission_queue = Queue.Queue()
-loggers = [app.logger, logging.getLogger('phue'), logging.getLogger('werkzeug')]
-# No logging. Switch out handlers for logging.
-# handler = logging.FileHandler('scratch_hue_extension.log')
-handler = logging.NullHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)14s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-for logger in loggers:
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
 
 device_state = {"wasButtonPressed/A"    : "false", 
                 "wasButtonPressed/B"    : "false", 
@@ -46,7 +15,6 @@ device_state = {"wasButtonPressed/A"    : "false",
                 "accelerationValue/X"   : 0,
                 "accelerationValue/Y"   : 0,
                 "accelerationValue/Z"   : 0,}
-
 
 def findGroveZeroNormal():
     L = comports()
@@ -70,7 +38,6 @@ def getValue(path):
             ser.close()
     except Exception as e:
         L = [0] * 14
-    print(L)
     if (L[0] == 1):
         device_state["wasButtonPressed/A"] = "true"
         device_state["wasButtonPressed/B"] = "false"
@@ -104,20 +71,10 @@ def getValue(path):
     device_state["accelerationValue/Z"] = np.int16(L[12] + L[13]*256)
 
 
-@app.route('/poll')
-def poll():
-    device_path = findGroveZeroNormal()
-    if (device_path):
-        getValue(device_path)
-        return "\n".join(["{} {}".format(i, device_state[i]) for i in device_state])
-    else:
-        return "_problem Chrome helper app not communicating with grove zero"
 
-@app.route('/displayText/<jobId>/<string:text>')
-def display_text(jobId, text):
-    device_path = findGroveZeroNormal()
-    if (device_path):
-        with serial.Serial(device_path, 115200, timeout=1) as ser:
+def writeLedMatrixText(path, text):
+    try:
+        with serial.Serial(path, 115200, timeout=1) as ser:
             s = '\x82\xf0\x04'
             count = 0
             for byte in text:
@@ -126,25 +83,26 @@ def display_text(jobId, text):
                 if (count >= 26):
                     break
             s += '\xf7'
+            print(s)
             ser.write(s)
             ser.close()
             return "OK"
-    else:
+    except Exception as e:
         return "ERROR"
 
-@app.route('/displayNumber/<jobId>/<num>')
-def display_number(jobId, num):
-    device_path = findGroveZeroNormal()
-    if (device_path):
-        with serial.Serial(device_path, 115200, timeout=1) as ser:
-            s = '\x82\xf0\x04' 
-            s += '{}'.format(num)
+# 0x03 melody = 0~7
+def writeBuzzerPlayMelody(path, melody = 0):
+    try:
+        with serial.Serial(path, 115200, timeout=1) as ser:
+            s = '\x81\xf0\x03'
+            s += chr(melody)
             s += '\xf7'
+            print(s)
             ser.write(s)
-            ser.close()            
+            ser.close()
             return "OK"
-    else:
-        return "ERROR"
+    except Exception as e:
+        return "ERROR"    
 
 gamut_dict = {"C3":1, "C#3":22, "D3":2, "D#3":23, "E3":3, "F3":4, "F#3":24, "G3":5, "G#3":25, "A3":6, "A#3":26, "B3":7,
                "C4":8, "C#4":27, "D4":9, "D#4":28, "E4":10, "F4":11, "F#4":29, "G4":12, "G#4":30, "A4":13, "A#4":31, "B4":14,
@@ -152,52 +110,31 @@ gamut_dict = {"C3":1, "C#3":22, "D3":2, "D#3":23, "E3":3, "F3":4, "F#3":24, "G3"
 
 beat_dict = {"Whole":0, "Double":1, "Quadruple":2, "Octuple":3, "Half":4, "Quarter":5, "Eighth":6, "Sixteenth":7}
 
-@app.route('/playTone/<jobId>/<gamut>/<scale>/<beat>')
-def play_tone(jobId, gamut, scale, beat):
-    device_path = findGroveZeroNormal()
-    if (device_path):
-        with serial.Serial(device_path, 115200, timeout=1) as ser:
+# 0x01
+def writeBuzzerPlayTone(path, gamut, beat):
+    try:
+        with serial.Serial(path, 115200, timeout=1) as ser:
             s = '\x81\xf0\x01'
-            s += chr(gamut_dict[gamut+scale])
+            s += chr(gamut_dict[gamut])
             s += chr(beat_dict[beat])
             s += '\xf7'
+            print(s)
             ser.write(s)
             ser.close()
             return "OK"
-    else:
-        return "ERROR"
+    except Exception as e:
+        return "ERROR"   
 
-melody_dict = {"BaDing":0, "Wawawawaa":1, "JumpUp":2, "JumpDown":3, "PowerUp":4, "PowerDown":5, "MagicWand":6, "Siren":7}
+def main():
+    getValue(findGroveZeroNormal())
+    print ("\n".join(["{} {}".format(i, device_state[i]) for i in device_state]))
+    # writeLedMatrixText(findGroveZeroNormal(), 'abcdefghijklmnopqrstuvwxyzabcd')
+    # writeBuzzerPlayMelody(findGroveZeroNormal(), 8)
+    # writeBuzzerPlayTone(findGroveZeroNormal(), "C5", "BEAT_1")
+    time.sleep(0.1)
+    
 
-@app.route('/playMelody/<jobId>/<melody>')
-def play_melody(jobId, melody):
-    device_path = findGroveZeroNormal()
-    if (device_path):
-        with serial.Serial(device_path, 115200, timeout=1) as ser:
-            s = '\x81\xf0\x03'
-            s += chr(melody_dict[melody])
-            s += '\xf7'
-            # print(s)
-            ser.write(s)
-            ser.close()
-            return "OK"
-    else:
-        return "ERROR"
-
-
-@app.route('/reset_all')
-def reset_all():
-    return "OK"
-
-@app.route('/crossdomain.xml')
-def cross_domain_check():
-    return """
-<cross-domain-policy>
-    <allow-access-from domain="*" to-ports="32781"/>
-</cross-domain-policy>
-"""
-
-print(" * The Scratch helper app for controlling Hue lights is running. Have fun :)")
-print(" * See mrproctor.net/scratch for help.")
-print(" * Press Control + C to quit.")
-app.run('0.0.0.0', port=32781)
+if __name__ == '__main__':
+    while True:
+        main() 
+    # main()
