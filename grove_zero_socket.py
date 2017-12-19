@@ -131,7 +131,7 @@ def display_number(jobId, num):
             s += '\xf7'
             ser.write(s)
             ser.close()
-        # addjobID(jobId, beat_delay_dict[melody])          
+        addjobID(jobId, len('{}'.format(num)))        
         return "OK"
     else:
         return "ERROR"
@@ -154,13 +154,13 @@ def play_tone(jobId, gamut, scale, beat):
             s += '\xf7'
             ser.write(s)
             ser.close()
-        addjobID(jobId, beat_delay_dict[melody])
+        addjobID(jobId, beat_delay_dict[beat])
         return "OK"
     else:
         return "ERROR"
 
 melody_dict = {"BaDing":0, "Wawawawaa":1, "JumpUp":2, "JumpDown":3, "PowerUp":4, "PowerDown":5, "MagicWand":6, "Siren":7}
-melody_delay_dict = {"BaDing":0.5, "Wawawawaa":2.63, "JumpUp":0.63, "JumpDown":0.63, "PowerUp":1.13, "PowerDown":1.13, "MagicWand":1, "Siren":3}
+melody_delay_dict = {"BaDing":0.5, "Wawawawaa":2.63, "JumpUp":0.63, "JumpDown":0.63, "PowerUp":1.13, "PowerDown":1.13, "MagicWand":2, "Siren":3}
 
 @app.route('/playMelody/<jobId>/<melody>')
 def play_melody(jobId, melody):
