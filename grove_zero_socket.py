@@ -24,10 +24,10 @@ for logger in loggers:
 
 device_state = {"wasButtonPressed/A"    : "false", 
                 "wasButtonPressed/B"    : "false", 
-                "wasTilted/up"          : "false",
-                "wasTilted/down"        : "false",
-                "wasTilted/left"        : "false",
-                "wasTilted/right"       : "false",
+                "wasTilted/Up"          : "false",
+                "wasTilted/Down"        : "false",
+                "wasTilted/Left"        : "false",
+                "wasTilted/Right"       : "false",
                 "lightValue"            : 0,
                 "soundValue"            : 0,
                 "temperatureValue"      : 0,
@@ -73,19 +73,19 @@ def getValue(path):
     device_state["lightValue"] = L[3] + L[4]*256
     device_state["soundValue"] = L[5] + L[6]*256
 
-    device_state["wasTilted/left"] = "false"
-    device_state["wasTilted/right"] = "false"
-    device_state["wasTilted/up"] = "false"
-    device_state["wasTilted/down"] = "false"
+    device_state["wasTilted/Left"] = "false"
+    device_state["wasTilted/Right"] = "false"
+    device_state["wasTilted/Up"] = "false"
+    device_state["wasTilted/Down"] = "false"
     
     if L[7] == 1:
-        device_state["wasTilted/left"] = "true"
+        device_state["wasTilted/Left"] = "true"
     elif L[7] == 2:
-        device_state["wasTilted/right"] = "true"
+        device_state["wasTilted/Right"] = "true"
     elif L[7] == 3:
-        device_state["wasTilted/up"] = "true"
+        device_state["wasTilted/Up"] = "true"
     elif L[7] == 4:
-        device_state["wasTilted/down"] = "true"
+        device_state["wasTilted/Down"] = "true"
     
     device_state["accelerationValue/X"] = np.int16(L[8] + L[9]*256)
     device_state["accelerationValue/Y"] = np.int16(L[10] + L[11]*256)
@@ -140,8 +140,8 @@ gamut_dict = {"C3":1, "C#3":22, "D3":2, "D#3":23, "E3":3, "F3":4, "F#3":24, "G3"
                "C4":8, "C#4":27, "D4":9, "D#4":28, "E4":10, "F4":11, "F#4":29, "G4":12, "G#4":30, "A4":13, "A#4":31, "B4":14,
                "C5":15, "C#5":32, "D5":16, "D#5":33, "E5":17, "F5":18, "F#5":34, "G5":19, "G#5":35, "A5":20, "A#5":36, "B5":21}
 
-beat_dict = {"Whole":0, "Double":1, "Quadruple":2, "Octuple":3, "Half":4, "Quarter":5, "Eighth":6, "Sixteenth":7}
-beat_delay_dict = {"Whole":0.5, "Double":1, "Quadruple":2, "Octuple":4, "Half":0.25, "Quarter":0.13, "Eighth":0.07, "Sixteenth":0.04}
+beat_dict = {"1":0, "2":1, "4":2, "8":3, "0.5":4, "0.25":5, "0.125":6, "0.0625":7}
+beat_delay_dict = {"1":0.5, "2":1, "4":2, "8":4, "0.5":0.25, "0.25":0.13, "0.125":0.07, "0.0625":0.04}
 
 @app.route('/playTone/<jobId>/<gamut>/<scale>/<beat>')
 def play_tone(jobId, gamut, scale, beat):
