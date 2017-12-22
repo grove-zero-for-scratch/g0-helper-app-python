@@ -8,42 +8,18 @@ import server
 import thread
 
 
-
-        
-
-# class ledWidget(QWidget):
-#     def __init__(self):
-#         super(ledWidget, self).__init__()
-#         # self.resize(275,50)
-#         self.label = QLabel(self)
-#         self.label.resize(275,50)
-#         self.label.setFrameStyle(QFrame.StyledPanel | QFrame.Plain)
-#         self.label.setStyleSheet("background-color: white")
-        
-#         self.led1 = myLabelWidget()
-#         self.led2 = myLabelWidget()
-#         self.led2.setColor(2)
-
-#         self.grid = QVBoxLayout(self)
-#         self.grid.addWidget(self.led1)
-#         self.grid.addWidget(self.led2)
-#         self.grid.addStretch(6)
-    
-    # def setColor(self, color):
-    #     self.
-    
-
-    # def setText(self, Text):
-
 class checkPortThread(QThread):
     printPortList = Signal(str)
     cleanPortList = Signal()
+    isScratchConnect = Signal(int)
 
     def __init__(self, parent=None):
         super(checkPortThread, self).__init__(parent)
         self.exit = False
         self.now_list = []
         self.last_list = []
+        self.last_count = 0
+        self.scratch_status_flag = False
     
     def scan(self):
         self.now_list = scan.scanGroveZero()
@@ -64,9 +40,23 @@ class checkPortThread(QThread):
             except Exception as e:
                 server.device_port = None
     
+    def checkScratch(self):
+        if (server.is_scratch_connected_count != self.last_count):
+            # connecting
+            self.last_count = server.is_scratch_connected_count
+            if not self.scratch_status_flag:
+                self.isScratchConnect.emit(1)
+                self.scratch_status_flag = True
+        else:
+            # not connect
+            if self.scratch_status_flag:
+                self.isScratchConnect.emit(0)
+                self.scratch_status_flag = False
+
     def run(self):
         while not self.exit:
             self.scan()
+            self.checkScratch()
             time.sleep(0.5)
 
 
@@ -110,13 +100,10 @@ class Window(QWidget):
         self.led2 = QLabel(self)
         self.green_point = QPixmap('.\Resources\\green.png')
         self.red_point = QPixmap('.\Resources\\red.png')
-        self.led1.setPixmap(self.green_point)
-        self.led1.move(300-17-11-20,264)
-        self.led2.setPixmap(self.green_point) 
-        self.led2.move(300-17-11-20,279)
-
-        #button
-        # self.button = QPushButton("Stop server", self)
+        self.led1.setPixmap(self.red_point)
+        self.led1.move(252,264)
+        self.led2.setPixmap(self.red_point) 
+        self.led2.move(252,279)
 
         #combo
         self.combo_board = QComboBox(self)
@@ -124,10 +111,10 @@ class Window(QWidget):
         
         self.combo_board.addItem("Grove Zero")
         self.combo_board.resize(120, 35)
-        self.combo_board.move(90,50+17+30)
+        self.combo_board.move(90, 97)
 
         self.combo_port.resize(120, 35)
-        self.combo_port.move(90,50+17+35+17+30)
+        self.combo_port.move(90, 149)
 
         # check port thread
         self.check_port_thread = checkPortThread()
@@ -135,7 +122,12 @@ class Window(QWidget):
         self.check_port_thread.cleanPortList.connect(self.combo_port.clear)
         self.check_port_thread.start()
         self.combo_port.activated[str].connect(self.changePort)
+
+        # start http server
         thread.start_new_thread(server.run, ())
+
+        # check is scratch connected
+        self.check_port_thread.isScratchConnect.connect(self.updateScratchStatus)
 
     @Slot(str)
     def changePort(self, s):
@@ -143,19 +135,26 @@ class Window(QWidget):
         try:
             server.device_port = s
             print(server.port)
-        except Exception:
-            pass
+            # to test
+            if s == '':
+                self.led1.setPixmap(self.red_point)
+            else:
+                self.led1.setPixmap(self.green_point)
+        except Exception as e:
+            print(e)
 
-    
+    @Slot(int)
+    def updateScratchStatus(self, num):
+        if num == 1:
+            self.led2.setPixmap(self.green_point)
+        else:
+            self.led2.setPixmap(self.red_point)
+
+
     @Slot(str)
     def comboSlot(self, s):
         self.combo_port.addItem(s)
 
-
-    # @Slot()
-    # def startServer(self):
-    #     pass
-        # self.server.terminate()
     @Slot(int)
     def changeLed1(self, color):
         if color == 2:
@@ -170,13 +169,6 @@ class Window(QWidget):
         else:
             self.led1.setPixmap(self.red_point)
 
-    # @Slot(str)
-    # def changelabel1(self, text):
-
-    # @Slot(str)
-    # def changelabel1(self, text):
-
-    
     def closeEvent(self, event):
         if self.check_port_thread.isRunning():
             self.check_port_thread.exit = True
@@ -184,36 +176,6 @@ class Window(QWidget):
                 pass
         server.terminate()
         event.accept()
-
-# class myLabelWidget(QWidget):
-#     def __init__(self):
-#         super(myLabelWidget, self).__init__()
-#         # self.setFont('Quicksand')
-
-#         self.label_1 = QLabel(self)
-#         self.text = "hello"
-#         self.label_1.setText(self.text)
-
-#         self.label_2 = QLabel(self)
-#         self.color = 1  # 1-red 2-green
-#         self.red_point = QPixmap('.\Resources\\green.png')
-#         self.green_point = QPixmap('.\Resources\\red.png')
-#         self.setColor(self.color)
-
-#         self.grid = QHBoxLayout(self)
-#         self.grid.addWidget(self.label_1)
-#         self.grid.addStretch(6)
-#         self.grid.addWidget(self.label_2)
-#         self.show()
-    
-#     def setText(self, text):
-#         self.label_1.setText(text)
-
-#     def setColor(self, color):
-#         if color == 1:
-#             self.label_2.setPixmap(self.red_point)
-#         else:
-#             self.label_2.setPixmap(self.green_point)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

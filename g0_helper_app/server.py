@@ -28,7 +28,8 @@ device_state ={"wasButtonPressed/A"    : "false",
                 "accelerationValue/Y"   : 0,
                 "accelerationValue/Z"   : 0,}
 
-device_port = "COM6"
+device_port = ""
+is_scratch_connected_count = np.int32(0)
 
 def getValue(port):
     L = []
@@ -80,9 +81,11 @@ def getValue(port):
 
 @app.route('/poll')
 def poll():
+    global is_scratch_connected_count
+    is_scratch_connected_count += 1
     if not getValue(device_port):
-        print("no port")
-        return "_problem Chrome helper app not communicating with grove zero"
+        print(is_scratch_connected_count)
+        return "_problem Helper app can not communicate with Grove Zero"
     else:
         return "\n".join(["{} {}".format(i, device_state[i]) for i in device_state])
 
