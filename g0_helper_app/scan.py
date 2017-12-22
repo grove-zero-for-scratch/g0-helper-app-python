@@ -28,7 +28,7 @@ def test():
     else:
         print(L)
 
-    if isDeviceConnected(L[0]):
+    if isDeviceConnected('COM3'):
         print("yes")
     else:
         print("No")
