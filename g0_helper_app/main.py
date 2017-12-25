@@ -12,6 +12,7 @@ class checkPortThread(QThread):
     printPortList = Signal(str)
     cleanPortList = Signal()
     isScratchConnect = Signal(int)
+    isDeviceConnect = Signal(int)
 
     def __init__(self, parent=None):
         super(checkPortThread, self).__init__(parent)
@@ -33,12 +34,19 @@ class checkPortThread(QThread):
                 # print("come in")
             try:
                 if (server.device_port in self.now_list) and (server.device_port != None):
+                    # light green led
+                    self.isDeviceConnect.emit(1)
                     print("keep this port")
                 else:
                     server.device_port = str(self.now_list[0])
+                    # when now_list is empty, ERROR will raise
+                    # light green led
+                    self.isDeviceConnect.emit(1)
                     print("change port to {}".format(server.device_port, ))
             except Exception as e:
                 server.device_port = None
+                # light red led
+                self.isDeviceConnect.emit(0)
     
     def checkScratch(self):
         if (server.is_scratch_connected_count != self.last_count):
@@ -90,8 +98,8 @@ class Window(QWidget):
         #label1 label2
         self.label1 = QLabel(self)
         self.label2 = QLabel(self)
-        self.label1.setText('Main Board is connected')
-        self.label2.setText('Scratch is connected')
+        self.label1.setText('Main Board is not connected')
+        self.label2.setText('Scratch is not connected')
         self.label1.move(40,260)
         self.label2.move(40,275)
 
@@ -128,18 +136,20 @@ class Window(QWidget):
 
         # check is scratch connected
         self.check_port_thread.isScratchConnect.connect(self.updateScratchStatus)
+        self.check_port_thread.isDeviceConnect.connect(self.updateDeviceStatus)
 
     @Slot(str)
     def changePort(self, s):
         # global server.port
         try:
             server.device_port = s
-            print(server.port)
-            # to test
-            if s == '':
-                self.led1.setPixmap(self.red_point)
-            else:
-                self.led1.setPixmap(self.green_point)
+            print(server.device_port)
+            # # print('hellohello')
+            # # to test
+            # if server.device_port == '':
+            #     self.led1.setPixmap(self.red_point)
+            # else:
+            #     self.led1.setPixmap(self.green_point)
         except Exception as e:
             print(e)
 
@@ -147,27 +157,23 @@ class Window(QWidget):
     def updateScratchStatus(self, num):
         if num == 1:
             self.led2.setPixmap(self.green_point)
+            self.label2.setText('Scratch is connected')
         else:
             self.led2.setPixmap(self.red_point)
+            self.label2.setText('Scratch is not connected')
 
+    @Slot(int)
+    def updateDeviceStatus(self, num):
+        if num == 1:
+            self.led1.setPixmap(self.green_point)
+            self.label1.setText('Main Board is connected')
+        else:
+            self.led1.setPixmap(self.red_point)
+            self.label1.setText('Main Board is not connected')
 
     @Slot(str)
     def comboSlot(self, s):
         self.combo_port.addItem(s)
-
-    @Slot(int)
-    def changeLed1(self, color):
-        if color == 2:
-            self.led1.setPixmap(self.green_point)
-        else:
-            self.led1.setPixmap(self.red_point)
-
-    @Slot(int)
-    def changeLed1(self, color):
-        if color == 2:
-            self.led1.setPixmap(self.green_point)
-        else:
-            self.led1.setPixmap(self.red_point)
 
     def closeEvent(self, event):
         if self.check_port_thread.isRunning():

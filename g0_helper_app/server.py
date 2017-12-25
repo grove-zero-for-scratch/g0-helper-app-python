@@ -4,6 +4,7 @@ import logging
 import serial
 import numpy as np
 import threading
+import time
 
 app = Flask("GroveZeroServer")
 app.logger.removeHandler(app.logger.handlers[0])
@@ -34,7 +35,7 @@ is_scratch_connected_count = np.int32(0)
 def getValue(port):
     L = []
     try:
-        with serial.Serial(port, 115200, timeout=1) as ser:
+        with serial.Serial(port, 115200, timeout=0.03) as ser:
             ser.write('\x80')
             for i in range(14):
                 # str object
@@ -92,7 +93,7 @@ def poll():
 @app.route('/displayText/<jobId>/<string:text>')
 def display_text(jobId, text):
     if (device_port):
-        with serial.Serial(device_port, 115200, timeout=1) as ser:
+        with serial.Serial(device_port, 115200, timeout=0.2) as ser:
             s = '\x82\xf0\x04'
             count = 0
             for byte in text:
@@ -111,7 +112,7 @@ def display_text(jobId, text):
 @app.route('/displayNumber/<jobId>/<num>')
 def display_number(jobId, num):
     if (device_port):
-        with serial.Serial(device_port, 115200, timeout=1) as ser:
+        with serial.Serial(device_port, 115200, timeout=0.2) as ser:
             s = '\x82\xf0\x04' 
             s += '{}'.format(num)
             s += '\xf7'
@@ -134,7 +135,7 @@ beat_delay_dict = {"1":0.5, "2":1, "4":2, "8":4, "0.5":0.25, "0.25":0.13, "0.125
 @app.route('/playTone/<jobId>/<gamut>/<scale>/<beat>')
 def play_tone(jobId, gamut, scale, beat):
     if (device_port):
-        with serial.Serial(device_port, 115200, timeout=1) as ser:
+        with serial.Serial(device_port, 115200, timeout=0.2) as ser:
             s = '\x81\xf0\x01'
             s += chr(gamut_dict[gamut+scale])
             s += chr(beat_dict[beat])
@@ -152,7 +153,7 @@ melody_delay_dict = {"BaDing":0.5, "Wawawawaa":2.63, "JumpUp":0.63, "JumpDown":0
 @app.route('/playMelody/<jobId>/<melody>')
 def play_melody(jobId, melody):
     if (device_port):
-        with serial.Serial(device_port, 115200, timeout=1) as ser:
+        with serial.Serial(device_port, 115200, timeout=0.2) as ser:
             s = '\x81\xf0\x03'
             s += chr(melody_dict[melody])
             s += '\xf7'
