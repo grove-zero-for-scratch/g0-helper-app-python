@@ -33,7 +33,8 @@ device_state ={"wasButtonPressed/A"    : "false",
 device_port = ""
 is_scratch_connected_count = np.int32(0)
 task_q = Queue.Queue(maxsize = 30)
-result_q = Queue.Queue(maxsize = 100)
+# result_q = Queue.Queue(maxsize = 100)
+result_q = Queue.Queue(maxsize = 3)
 
 class serialThread(threading.Thread):
     def __init__(self, task_queue, result_queue):
@@ -58,7 +59,7 @@ class serialThread(threading.Thread):
             L = []
             try:
                 self.port = device_port
-                with serial.Serial(self.port, 115200, timeout=0.005) as ser:
+                with serial.Serial(self.port, 115200, timeout=0.2) as ser:
                     ser.write('\x80')
                     for i in range(14):
                         # str object
@@ -74,13 +75,16 @@ class serialThread(threading.Thread):
 
             try:
                 self.result_queue.put_nowait(L)
+                print("queue size: {}".format(self.result_queue.qsize()))
             except Queue.Full:
-                pass
+                pop = self.result_queue.get()
+                self.result_queue.put(L)
+                # pass
         # display or play music
         else:
             try:
                 self.port = device_port
-                with serial.Serial(self.port, 115200, timeout=0.005) as ser:
+                with serial.Serial(self.port, 115200, timeout=0.2) as ser:
                     ser.write(task)
                     ser.close()
             except Exception as e:
@@ -100,6 +104,12 @@ def poll():
     try:
         L = result_q.get_nowait()
     except Queue.Empty:
+        device_state["wasButtonPressed/A"] = "false"
+        device_state["wasButtonPressed/B"] = "false"
+        device_state["wasTilted/Left"] = "false"
+        device_state["wasTilted/Right"] = "false"
+        device_state["wasTilted/Up"] = "false"
+        device_state["wasTilted/Down"] = "false"
         return "\n".join(["{} {}".format(i, device_state[i]) for i in device_state])
 
     if (L[0] == 1):

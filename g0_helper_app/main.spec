@@ -19,15 +19,16 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='main',
+          name='Grove Zero Helper APP',
           debug=False,
           strip=False,
           upx=True,
-          console=False )
+          console=True, 
+          icon ='icons.ico' )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
                a.datas,
                strip=False,
                upx=True,
-               name='main')
+               name='Grove Zero Helper APP')
