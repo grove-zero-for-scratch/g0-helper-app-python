@@ -4,7 +4,8 @@ from PySide.QtGui import *
 
 import scan
 import time
-import server
+# import server
+import server_new as server
 import thread
 
 
@@ -144,12 +145,6 @@ class Window(QWidget):
         try:
             server.device_port = s
             print(server.device_port)
-            # # print('hellohello')
-            # # to test
-            # if server.device_port == '':
-            #     self.led1.setPixmap(self.red_point)
-            # else:
-            #     self.led1.setPixmap(self.green_point)
         except Exception as e:
             print(e)
 
