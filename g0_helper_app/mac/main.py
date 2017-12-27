@@ -1,19 +1,24 @@
+#coding:utf-8
 import sys 
-from PySide.QtCore import *
-from PySide.QtGui import *
+# from PySide.QtCore import *
+# from PySide.QtGui import *
+from PyQt5.QtWidgets import QApplication, QComboBox, QLabel, QWidget, QFrame
+from PyQt5.QtCore import Qt, QObject, pyqtSignal, QThread
+from PyQt5.QtGui import QIcon, QFont, QPixmap, QFontDatabase
+import os
 
 import scan
 import time
 # import server
 import server_new as server
-import thread
+import _thread as thread
 
 
 class checkPortThread(QThread):
-    printPortList = Signal(str)
-    cleanPortList = Signal()
-    isScratchConnect = Signal(int)
-    isDeviceConnect = Signal(int)
+    printPortList = pyqtSignal(str)
+    cleanPortList = pyqtSignal()
+    isScratchConnect = pyqtSignal(int)
+    isDeviceConnect = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super(checkPortThread, self).__init__(parent)
@@ -73,6 +78,11 @@ class Window(QWidget):
     def __init__(self, parent = None):
         QWidget.__init__(self)
 
+        if getattr(sys, 'frozen', False):
+            self.macpath = os.path.dirname(sys.executable)
+        else:
+            self.macpath = os.path.dirname(os.path.realpath(__file__))
+
         # set size
         self.setGeometry(300, 300, 300, 320)
         self.setWindowTitle('Grove Zero Helper')
@@ -81,17 +91,18 @@ class Window(QWidget):
         # self.setWindowFlags(Qt.FramelessWindowHint)
 
         # add font
-        fontid1 = QFontDatabase.addApplicationFont('.\Resources\Quicksand\Quicksand-Medium.ttf')
-        fontid2 = QFontDatabase.addApplicationFont('.\Resources\Quicksand\Quicksand-Bold.ttf')
+        fontid1 = QFontDatabase.addApplicationFont('{}/../Resources/Quicksand/Quicksand-Medium.ttf'.format(self.macpath))
+        fontid2 = QFontDatabase.addApplicationFont('{}/../Resources/Quicksand/Quicksand-Bold.ttf'.format(self.macpath))
         # print(fontid2)
         # print(QFontDatabase.applicationFontFamilies(fontid1))
         # print(QFontDatabase.applicationFontFamilies(fontid2))        
         # self.setFont('Quicksand Medium')
-        self.setFont('Quicksand')
+        # QFont('Quicksand')
+        self.setFont(QFont('Quicksand'))
 
         #background
         self.lb1 = QLabel(self)
-        self.background_pic = QPixmap('.\Resources\\background.png')
+        self.background_pic = QPixmap('{}/../Resources/background.png'.format(self.macpath))
         self.lb1.resize(300,320)
         self.lb1.setPixmap(self.background_pic)
         self.lb1.setFrameStyle(QFrame.NoFrame | QFrame.Plain)
@@ -107,8 +118,8 @@ class Window(QWidget):
         #led1 led2
         self.led1 = QLabel(self)
         self.led2 = QLabel(self)
-        self.green_point = QPixmap('.\Resources\\green.png')
-        self.red_point = QPixmap('.\Resources\\red.png')
+        self.green_point = QPixmap('{}/../Resources/green.png'.format(self.macpath))
+        self.red_point = QPixmap('{}/../Resources/red.png'.format(self.macpath))
         self.led1.setPixmap(self.red_point)
         self.led1.move(252,264)
         self.led2.setPixmap(self.red_point) 
@@ -139,7 +150,7 @@ class Window(QWidget):
         self.check_port_thread.isScratchConnect.connect(self.updateScratchStatus)
         self.check_port_thread.isDeviceConnect.connect(self.updateDeviceStatus)
 
-    @Slot(str)
+    # @Slot(str)
     def changePort(self, s):
         # global server.port
         try:
@@ -148,7 +159,7 @@ class Window(QWidget):
         except Exception as e:
             print(e)
 
-    @Slot(int)
+    # @Slot(int)
     def updateScratchStatus(self, num):
         if num == 1:
             self.led2.setPixmap(self.green_point)
@@ -157,7 +168,7 @@ class Window(QWidget):
             self.led2.setPixmap(self.red_point)
             self.label2.setText('Scratch is not connected')
 
-    @Slot(int)
+    # @Slot(int)
     def updateDeviceStatus(self, num):
         if num == 1:
             self.led1.setPixmap(self.green_point)
@@ -166,7 +177,7 @@ class Window(QWidget):
             self.led1.setPixmap(self.red_point)
             self.label1.setText('Main Board is not connected')
 
-    @Slot(str)
+    # @Slot(str)
     def comboSlot(self, s):
         self.combo_port.addItem(s)
 

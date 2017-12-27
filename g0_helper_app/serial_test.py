@@ -7,9 +7,10 @@ def testSerial():
     global count
     L = []
     time0 = time.time()
-    with serial.Serial("COM3", 115200, timeout=0.2) as ser:
+    with serial.Serial("/dev/cu.usbmodem1411", 115200, timeout=0.2) as ser:
         try:
-            ser.write('\x80')
+            # ser.write('\x80')
+            ser.write(bytes([128]))
             for i in range(14):
                 L.append(ord(ser.read()))
             # L = ser.read(size=100)
