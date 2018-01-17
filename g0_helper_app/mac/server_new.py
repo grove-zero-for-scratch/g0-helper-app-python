@@ -267,10 +267,11 @@ def run():
 
 def terminate():
     t.exit = True
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
+    # func = request.environ.get('werkzeug.server.shutdown')
+    # if func is None:
+        # raise RuntimeError('Not running with the Werkzeug Server')
+    raise SystemExit
+    # func()
 
 def main():
     run()
