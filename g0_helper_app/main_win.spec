@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['main.py'],
+a = Analysis(['win\\main.py'],
              pathex=['C:\\Users\\jy\\Desktop\\mygithub\\g0-helper-app-python\\g0_helper_app'],
              binaries=[],
              datas=[],
@@ -23,7 +23,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=True, 
+          console=False, 
           icon ='icons.ico' )
 coll = COLLECT(exe,
                a.binaries,

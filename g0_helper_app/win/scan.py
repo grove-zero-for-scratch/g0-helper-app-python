@@ -19,19 +19,3 @@ def isDeviceConnected(port):
         return True
     else:
         return False
-
-
-def test():
-    L = scanGroveZero()
-    if not L:
-        print("No device")
-    else:
-        print(L)
-
-    if isDeviceConnected('COM3'):
-        print("yes")
-    else:
-        print("No")
-
-if __name__ == '__main__':
-    test()

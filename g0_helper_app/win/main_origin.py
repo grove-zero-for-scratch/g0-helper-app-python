@@ -72,9 +72,9 @@ class Window(QWidget):
         QWidget.__init__(self)
 
         if getattr(sys, 'frozen', False):
-            self.macpath = os.path.dirname(sys.executable)
+            self.windowsdir_path = os.path.dirname(sys.executable)
         else:
-            self.macpath = os.path.dirname(os.path.realpath(__file__))
+            self.windowsdir_path = os.path.dirname(os.path.realpath(__file__))
 
         # set size
         self.setGeometry(300, 300, 300, 320)
@@ -84,14 +84,14 @@ class Window(QWidget):
         # self.setWindowFlags(Qt.FramelessWindowHint)
 
         # add font
-        fontid1 = QFontDatabase.addApplicationFont('{}/../Resources/Quicksand/Quicksand-Medium.ttf'.format(self.macpath))
-        fontid2 = QFontDatabase.addApplicationFont('{}/../Resources/Quicksand/Quicksand-Bold.ttf'.format(self.macpath))
+        fontid1 = QFontDatabase.addApplicationFont('{}\\Resources\\Quicksand\\Quicksand-Medium.ttf'.format(self.windowsdir_path))
+        fontid2 = QFontDatabase.addApplicationFont('{}\\Resources\\Quicksand\\Quicksand-Bold.ttf'.format(self.windowsdir_path))
         # self.setFont('Quicksand Medium')
         self.setFont(QFont('Quicksand'))
 
         #background
         self.lb1 = QLabel(self)
-        self.background_pic = QPixmap('{}/../Resources/background.png'.format(self.macpath))
+        self.background_pic = QPixmap('{}\\Resources\\background.png'.format(self.windowsdir_path))
         self.lb1.resize(300,320)
         self.lb1.setPixmap(self.background_pic)
         self.lb1.setFrameStyle(QFrame.NoFrame | QFrame.Plain)
@@ -107,8 +107,8 @@ class Window(QWidget):
         #led1 led2
         self.led1 = QLabel(self)
         self.led2 = QLabel(self)
-        self.green_point = QPixmap('{}/../Resources/green.png'.format(self.macpath))
-        self.red_point = QPixmap('{}/../Resources/red.png'.format(self.macpath))
+        self.green_point = QPixmap('{}\\Resources\\green.png'.format(self.windowsdir_path))
+        self.red_point = QPixmap('{}\\Resources\\red.png'.format(self.windowsdir_path))
         self.led1.setPixmap(self.red_point)
         self.led1.move(252,264)
         self.led2.setPixmap(self.red_point) 
@@ -133,6 +133,7 @@ class Window(QWidget):
         self.combo_port.activated[str].connect(self.changePort)
 
         # start http server
+        # if the server is down, should raise IOError
         thread.start_new_thread(server.run, ())
 
         # check is scratch connected

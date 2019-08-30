@@ -33,7 +33,7 @@ device_state ={"wasButtonPressed/A"    : "false",
                 "accelerationValue/Y"   : 0,
                 "accelerationValue/Z"   : 0,}
 
-device_port = "/dev/cu.usbmodem1411"
+device_port = ""
 is_scratch_connected_count = np.int32(0)
 task_q = Queue.Queue(maxsize = 30)
 # result_q = Queue.Queue(maxsize = 100)
@@ -267,10 +267,11 @@ def run():
 
 def terminate():
     t.exit = True
-    func = request.environ.get('werkzeug.server.shutdown')
-    if func is None:
-        raise RuntimeError('Not running with the Werkzeug Server')
-    func()
+    # func = request.environ.get('werkzeug.server.shutdown')
+    # if func is None:
+        # raise RuntimeError('Not running with the Werkzeug Server')
+    raise SystemExit
+    # func()
 
 def main():
     run()
